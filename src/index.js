@@ -31,7 +31,7 @@
   };
   
   const checkLink = (element) => {
-    return Boolean(Link[element.tagName]);
+    return Link === element.tagName;
   }'
 
   const checkAriaAttr = (element) => {
