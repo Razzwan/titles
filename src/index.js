@@ -8,7 +8,7 @@
     H5: `h5`,
     H6: `h6`,
   }
-  
+
   const Link = `a`;
 
   const NodeType = {
@@ -22,17 +22,17 @@
     L: 76,
     M: 77,
   };
-  
+
   let nodeContainer = [];
   let currentNodeIndex = null;
 
   const checkHeader = (element) => {
       return Header[element.tagName] ? true : false;
   };
-  
+
   const checkLink = (element) => {
     return Link === element.tagName;
-  }'
+  };
 
   const checkAriaAttr = (element) => {
     return element.hasAttribute(`role`) ? true : false;
