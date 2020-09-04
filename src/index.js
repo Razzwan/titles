@@ -57,9 +57,6 @@
         return i;
         break;
       }
-      if (nodeType === `header` && !Tag[nodeContainer[i].tagName]) {
-        return nodeContainer.findIndex((node) => Tag[node.tagName]);
-      }
       if (nodeType === `link` && Tag[nodeContainer[i].tagName] === Tag.A) {
         return i;
         break;
@@ -77,9 +74,7 @@
 
   const addActiveClass = (nodeType) => {
     currentNodeIndex = findNodeIndex(currentNodeIndex, nodeType);
-    if (currentNodeIndex !== -1 ) {
       nodeContainer[currentNodeIndex].classList.add(`active`);
-    }
   };
 
 
