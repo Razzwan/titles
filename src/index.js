@@ -38,8 +38,10 @@
     return element.hasAttribute(`role`) ? true : false;
   };
 
+  // помимо этой переменной нужны еще коллекции, который возвращаются методом document.getElementByTagName(); и подобные
+  // коллекции хороши тем, что они автоматически обновляются при добавлении нового конетнта
+  // поэтому функцию collectNodes нам нужно выполнять КАЖДЫЙ РАЗ при нажатии на кнопку
   const collectNodes = (element) => {
-
       if (checkHeader(element)) {
         nodeContainer.push([element, NodeType.HEADER]);
       } else if (checkLink(element)) {
@@ -74,9 +76,8 @@
     }
   };
 
-  collectNodes(document.body);
-
   document.addEventListener(`keydown`, (evt) => {
+    collectNodes(document.body);
     if (evt.keyCode === KeyCode.H) {
       addActiveClass(NodeType.HEADER);
     }
@@ -86,6 +87,5 @@
     if (evt.keyCode === KeyCode.M) {
       addActiveClass(NodeType.LANDMARK);
     }
-
   });
 })();
