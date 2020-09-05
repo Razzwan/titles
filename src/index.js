@@ -7,7 +7,7 @@
     H4: `h4`,
     H5: `h5`,
     H6: `h6`,
-  }
+  };
 
   const Link = `A`;
 
@@ -30,7 +30,7 @@
   let upToDownDirection = true;
 
   const checkHeader = (element) => {
-      return Header[element.tagName] ? true : false;
+    return Boolean(Header[element.tagName]);
   };
 
   const checkLink = (element) => {
@@ -38,43 +38,49 @@
   };
 
   const checkAriaAttr = (element) => {
-    return element.hasAttribute(`role`) ? true : false;
+    return element.hasAttribute(`role`);
   };
 
-  // помимо этой переменной нужны еще коллекции, который возвращаются методом document.getElementByTagName(); и подобные
-  // коллекции хороши тем, что они автоматически обновляются при добавлении нового конетнта
-  // поэтому функцию collectNodes нам нужно выполнять КАЖДЫЙ РАЗ при нажатии на кнопку
   const collectNodes = (element) => {
-      if (checkHeader(element)) {
-        nodeContainer.push([element, NodeType.HEADER]);
-      } else if (checkLink(element)) {
-        nodeContainer.push([element, NodeType.LINK]);
-      } else if (checkAriaAttr(element)) {
-        nodeContainer.push([element, NodeType.LANDMARK]);
+    nodeContainer = [];
+    if (checkHeader(element)) {
+      nodeContainer.push([element, NodeType.HEADER]);
+    } else if (checkLink(element)) {
+      nodeContainer.push([element, NodeType.LINK]);
+    } else if (checkAriaAttr(element)) {
+      nodeContainer.push([element, NodeType.LANDMARK]);
+    }
+    if (element.children.length > 0) {
+      for (let i = 0; i < element.children.length; i++) {
+        collectNodes(element.children[i]);
       }
-      if (element.children.length > 0) {
-        for (let i = 0; i < element.children.length; i++) {
-          collectNodes(element.children[i])
-        }
-      }
+    }
   };
 
   const findNodeIndex = (start, nodeType) => {
-    const newIndex = (typeof start !== `number`) || (start > nodeContainer.length -1) ? 0 : start + 1;
+    const length = nodeContainer.length;
+    const newIndex = typeof start === `number` ? (start < length ? start + 1 : 0) : 0;
 
-    return nodeContainer.findIndex((node, index) => {
-      return (node[1] === nodeType) && (index >= newIndex);
-    });
+    let resIndex = undefined;
+    const maxElementIndex = length + newIndex;
+    for (let i = newIndex; i < maxElementIndex + newIndex; i++) {
+      const index = i % length;
+      if (nodeContainer[index][1] === nodeType) {
+        return index;
+      }
+    }
+
+    return resIndex;
   };
 
   const toggleClassActive = (nodeType) => {
     const newIndex = findNodeIndex(currentNodeIndex, nodeType);
     if (newIndex !== -1) {
       currentNodeIndex = newIndex;
-  
+
       nodeContainer.forEach((node) => node[0].classList.remove(`active`));
       nodeContainer[currentNodeIndex][0].classList.add(`active`);
-    };
+    }
   };
 
   document.addEventListener(`keydown`, (evt) => {
@@ -94,7 +100,5 @@
     if (evt.keyCode === KeyCode.ARROW_DOWN) {
       upToDownDirection = false;
     }
-    // Тут nodeContainer = []; - для очистки, что бы в nodeContainer не копились теги с каждым событием
-    nodeContainer = [];
   });
 })();
