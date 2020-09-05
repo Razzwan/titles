@@ -8,8 +8,8 @@
     H5: `h5`,
     H6: `h6`,
   }
-  
-  const Link = `a`;
+
+  const Link = `A`;
 
   const NodeType = {
     HEADER: `header`,
@@ -21,18 +21,21 @@
     H: 72,
     L: 76,
     M: 77,
+    ARROW_UP: 38,
+    ARROW_DOWN: 40,
   };
-  
+
   let nodeContainer = [];
   let currentNodeIndex = null;
+  let upToDownDirection = true;
 
   const checkHeader = (element) => {
       return Header[element.tagName] ? true : false;
   };
-  
+
   const checkLink = (element) => {
     return Link === element.tagName;
-  }'
+  };
 
   const checkAriaAttr = (element) => {
     return element.hasAttribute(`role`) ? true : false;
@@ -50,42 +53,48 @@
         nodeContainer.push([element, NodeType.LANDMARK]);
       }
       if (element.children.length > 0) {
-        for (let i = 0; i < element.children.length ; i++) {
+        for (let i = 0; i < element.children.length; i++) {
           collectNodes(element.children[i])
         }
       }
   };
 
   const findNodeIndex = (start, nodeType) => {
-    const newIndex = start === null || start > nodeContainer.length ? 0 : start + 1;
+    const newIndex = (typeof start !== `number`) || (start > nodeContainer.length -1) ? 0 : start + 1;
 
-    for (let i = start; i < nodeContainer.length; i++) {
-      if (nodeContainer[i][1] === nodeType) {
-        return i;
-      }
-    }
-    return undefined;
+    return nodeContainer.findIndex((node, index) => {
+      return (node[1] === nodeType) && (index >= newIndex);
+    });
   };
 
-  const addActiveClass = (nodeType) => {
+  const toggleClassActive = (nodeType) => {
     const newIndex = findNodeIndex(currentNodeIndex, nodeType);
-    if (typeof currentNodeIndex === 'number') {
+    if (newIndex !== -1) {
       currentNodeIndex = newIndex;
-      // TODO: удалить ВСЕ КЛАССЫ active из ВСЕХ ЭЛЕМЕНТОВ
-      nodeContainer[currentNodeIndex].classList.add(`active`);
-    }
+  
+      nodeContainer.forEach((node) => node[0].classList.remove(`active`));
+      nodeContainer[currentNodeIndex][0].classList.add(`active`);
+    };
   };
 
   document.addEventListener(`keydown`, (evt) => {
     collectNodes(document.body);
     if (evt.keyCode === KeyCode.H) {
-      addActiveClass(NodeType.HEADER);
+      toggleClassActive(NodeType.HEADER);
     }
     if (evt.keyCode === KeyCode.L) {
-      addActiveClass(NodeType.LINK);
+      toggleClassActive(NodeType.LINK);
     }
     if (evt.keyCode === KeyCode.M) {
-      addActiveClass(NodeType.LANDMARK);
+      toggleClassActive(NodeType.LANDMARK);
     }
+    if (evt.keyCode === KeyCode.ARROW_UP) {
+      upToDownDirection = true;
+    }
+    if (evt.keyCode === KeyCode.ARROW_DOWN) {
+      upToDownDirection = false;
+    }
+    // Тут nodeContainer = []; - для очистки, что бы в nodeContainer не копились теги с каждым событием
+    nodeContainer = [];
   });
 })();
