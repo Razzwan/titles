@@ -9,7 +9,7 @@
     H6: `h6`,
   }
 
-  const Link = `a`;
+  const Link = `A`;
 
   const NodeType = {
     HEADER: `header`,
@@ -50,7 +50,7 @@
         nodeContainer.push([element, NodeType.LANDMARK]);
       }
       if (element.children.length > 0) {
-        for (let i = 0; i < element.children.length ; i++) {
+        for (let i = 0; i < element.children.length; i++) {
           collectNodes(element.children[i])
         }
       }
@@ -59,33 +59,34 @@
   const findNodeIndex = (start, nodeType) => {
     const newIndex = start === null || start > nodeContainer.length ? 0 : start + 1;
 
-    for (let i = start; i < nodeContainer.length; i++) {
+    for (let i = newIndex; i < nodeContainer.length; i++) {
       if (nodeContainer[i][1] === nodeType) {
         return i;
       }
     }
-    return undefined;
+    return nodeContainer.findIndex((node => node[1] === nodeType));
   };
 
-  const addActiveClass = (nodeType) => {
+  const toggleClassActive = (nodeType) => {
     const newIndex = findNodeIndex(currentNodeIndex, nodeType);
-    if (typeof currentNodeIndex === 'number') {
       currentNodeIndex = newIndex;
-      // TODO: удалить ВСЕ КЛАССЫ active из ВСЕХ ЭЛЕМЕНТОВ
-      nodeContainer[currentNodeIndex].classList.add(`active`);
-    }
+
+      nodeContainer.forEach((node) => node[0].classList.remove(`active`));
+      nodeContainer[currentNodeIndex][0].classList.add(`active`);
   };
 
   document.addEventListener(`keydown`, (evt) => {
     collectNodes(document.body);
     if (evt.keyCode === KeyCode.H) {
-      addActiveClass(NodeType.HEADER);
+      toggleClassActive(NodeType.HEADER);
     }
     if (evt.keyCode === KeyCode.L) {
-      addActiveClass(NodeType.LINK);
+      toggleClassActive(NodeType.LINK);
     }
     if (evt.keyCode === KeyCode.M) {
-      addActiveClass(NodeType.LANDMARK);
+      toggleClassActive(NodeType.LANDMARK);
     }
+    // Тут nodeContainer = []; - для очистки, что бы в nodeContainer не копились теги с каждым событием
+    nodeContainer = [];
   });
 })();
