@@ -21,10 +21,13 @@
     H: 72,
     L: 76,
     M: 77,
+    ARROW_UP: 38,
+    ARROW_DOWN: 40,
   };
 
   let nodeContainer = [];
   let currentNodeIndex = null;
+  let upToDownDirection = true;
 
   const checkHeader = (element) => {
       return Header[element.tagName] ? true : false;
@@ -57,22 +60,21 @@
   };
 
   const findNodeIndex = (start, nodeType) => {
-    const newIndex = start === null || start > nodeContainer.length ? 0 : start + 1;
+    const newIndex = (typeof start !== `number`) || (start > nodeContainer.length -1) ? 0 : start + 1;
 
-    for (let i = newIndex; i < nodeContainer.length; i++) {
-      if (nodeContainer[i][1] === nodeType) {
-        return i;
-      }
-    }
-    return nodeContainer.findIndex((node => node[1] === nodeType));
+    return nodeContainer.findIndex((node, index) => {
+      return (node[1] === nodeType) && (index >= newIndex);
+    });
   };
 
   const toggleClassActive = (nodeType) => {
     const newIndex = findNodeIndex(currentNodeIndex, nodeType);
+    if (newIndex !== -1) {
       currentNodeIndex = newIndex;
-
+  
       nodeContainer.forEach((node) => node[0].classList.remove(`active`));
       nodeContainer[currentNodeIndex][0].classList.add(`active`);
+    };
   };
 
   document.addEventListener(`keydown`, (evt) => {
@@ -85,6 +87,12 @@
     }
     if (evt.keyCode === KeyCode.M) {
       toggleClassActive(NodeType.LANDMARK);
+    }
+    if (evt.keyCode === KeyCode.ARROW_UP) {
+      upToDownDirection = true;
+    }
+    if (evt.keyCode === KeyCode.ARROW_DOWN) {
+      upToDownDirection = false;
     }
     // Тут nodeContainer = []; - для очистки, что бы в nodeContainer не копились теги с каждым событием
     nodeContainer = [];
