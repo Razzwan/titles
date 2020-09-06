@@ -1,6 +1,7 @@
 (function () {
+  const ACTIVE_CLASS = 'active128731';
 
-  const Header = {
+  const HEADER_TAG = {
     H1: `h1`,
     H2: `h2`,
     H3: `h3`,
@@ -9,17 +10,16 @@
     H6: `h6`,
   };
 
-  const Link = `A`;
+  const LINK_TAG = `A`;
+  const INPUT_TAG = [`INPUT`, `TEXTAREA`];
 
-  const NodeType = {
+  const NODE_TYPE = {
     HEADER: `header`,
     LINK: `link`,
     LANDMARK: `landmark`,
   };
 
-  const Input = `INPUT`;
-
-  const KeyCode = {
+  const KEY_CODE = {
     H: 72,
     L: 76,
     M: 77,
@@ -27,126 +27,132 @@
     ARROW_DOWN: 40,
   };
 
-  const HOT_KEYS = [`ctrlKey`, `altKey`, `shiftKey `];
+  // const HOT_KEYS = [`ctrlKey`, `altKey`, `shiftKey `];
 
   let nodeContainer = [];
   let currentNodeIndex = null;
   let upToDownDirection = true;
 
-  const checkHeader = (element) => {
-    return Boolean(Header[element.tagName]);
+  const checkIsHeader = (element) => {
+    return Boolean(HEADER_TAG[element.tagName]);
   };
 
-  const checkLink = (element) => {
-    return Link === element.tagName;
+  const checkIsLink = (element) => {
+    return LINK_TAG === element.tagName;
   };
 
-  const checkAriaAttr = (element) => {
+  const checkIsAriaAttr = (element) => {
     return element.hasAttribute(`role`);
   };
 
   const addNeededNode = (element) => {
-    if (checkHeader(element)) {
-      nodeContainer.push([element, NodeType.HEADER]);
-    } else if (checkLink(element)) {
-      nodeContainer.push([element, NodeType.LINK]);
-    } else if (checkAriaAttr(element)) {
-      nodeContainer.push([element, NodeType.LANDMARK]);
+    if (checkIsHeader(element)) {
+      nodeContainer.push([element, NODE_TYPE.HEADER]);
+    } else if (checkIsLink(element)) {
+      nodeContainer.push([element, NODE_TYPE.LINK]);
+    } else if (checkIsAriaAttr(element)) {
+      nodeContainer.push([element, NODE_TYPE.LANDMARK]);
     }
   };
 
-  const addNeededChildrenNode = (element) => {
+  const collectAllElementNodes = (element) => {
+    addNeededNode(element);
     if (element.children.length > 0) {
       for (let i = 0; i < element.children.length; i++) {
-        addNeededNode(element.children[i])
-        addNeededChildrenNode(element.children[i]);
+        collectAllElementNodes(element.children[i]);
       }
     }
   };
 
-  const collectNodeList = (element) => {
+  const refreshNodeList = (element) => {
     nodeContainer = [];
-    addNeededNode(element);
-    addNeededChildrenNode(element);
+    collectAllElementNodes(element);
   };
 
-  const findNodeIndex = (index, nodeType) => {
+  const findNodeIndex = (prevIndex, nodeType) => {
     const length = nodeContainer.length;
-    let resIndex = undefined;// ** зачем нужен resIndex с let
 
     if (upToDownDirection) {
-      const start = typeof index === `number` ? (index < length ? index + 1 : 0) : 0;
+      const start = typeof prevIndex === `number` ? (prevIndex < length ? prevIndex + 1 : 0) : 0;
       const maxElementIndex = length + start;
-      for (let i = start; i < maxElementIndex + start; i++) {// ** Зачем тут к maxElementIndex прибовлять newIndex
+      for (let i = start; i < maxElementIndex; i++) {
         const newIndex = i % length;
         if (nodeContainer[newIndex][1] === nodeType) {
           return newIndex;
         }
       }
-    }
-
-    if (!upToDownDirection) {
+    } else {
       const defaultIndex = length - 1;
-      let start = typeof index === `number` ? (index > 0 ? index - 1 : defaultIndex) : defaultIndex;
-      const minElementIndex = -length - start;
-      if (start === 0 && nodeContainer[start][1] !== nodeType) {
-        start = defaultIndex;
-      }
+      let start = typeof prevIndex === `number` ? (prevIndex !== 0 ? prevIndex - 1 : defaultIndex) : defaultIndex;
+      const minElementIndex = start - length;
       for (let i = start; i > minElementIndex; i--) {
-        const newIndex = Math.abs(i) % length;
-
+        const newIndex = ((i >= 0) ? i : (length + i)) % length;
         if (nodeContainer[newIndex][1] === nodeType) {
           return newIndex;
         }
       }
     }
 
-    return resIndex;
+    return undefined;
   };
 
   const toggleClassActive = (nodeType) => {
+    const prevIndex = currentNodeIndex;
     const newIndex = findNodeIndex(currentNodeIndex, nodeType);
     if (typeof newIndex === `number`) {
       currentNodeIndex = newIndex;
-      nodeContainer.forEach((node) => node[0].classList.remove(`active`));
-      nodeContainer[currentNodeIndex][0].classList.add(`active`);
+      if (typeof prevIndex === "number") {
+        if (nodeContainer[prevIndex]) {
+          nodeContainer[prevIndex][0].classList.remove(ACTIVE_CLASS);
+        }
+      }
+      nodeContainer[currentNodeIndex][0].classList.add(ACTIVE_CLASS);
     }
   };
 
-  const checkHotKey = (evt) => {
-    return HOT_KEYS.find((key) => evt[key]);
-  };
-
-  const checkOnInput = () => {
-    if (typeof currentNodeIndex !== `number`) {
-      return false;
-    }
-    return nodeContainer[currentNodeIndex][0].tagName === Input;
+  const checkIsTargetInput = (evt) => {
+    return INPUT_TAG.indexOf(evt.target.tagName) !== -1;
   };
 
   document.addEventListener(`keydown`, (evt) => {
+    const isCurrentTagInput = checkIsTargetInput(evt);
 
-    collectNodeList(document.body);
-    const isHotKey = checkHotKey(evt);
-    const isCurrentTagInput = checkOnInput();
+    if (isCurrentTagInput) {
+      return;
+    }
 
-    if (evt.keyCode === KeyCode.H) {
-      toggleClassActive(NodeType.HEADER);
+    refreshNodeList(document.body);
+
+    if (evt.keyCode === KEY_CODE.H) {
+      toggleClassActive(NODE_TYPE.HEADER);
     }
-    if (evt.keyCode === KeyCode.L) {
-      toggleClassActive(NodeType.LINK);
+    if (evt.keyCode === KEY_CODE.L) {
+      toggleClassActive(NODE_TYPE.LINK);
     }
-    if (evt.keyCode === KeyCode.M) {
-      toggleClassActive(NodeType.LANDMARK);
+    if (evt.keyCode === KEY_CODE.M) {
+      toggleClassActive(NODE_TYPE.LANDMARK);
     }
-    if (evt.keyCode === KeyCode.ARROW_UP) {
+    if (evt.keyCode === KEY_CODE.ARROW_UP) {
       upToDownDirection = false;
     }
-    if (evt.keyCode === KeyCode.ARROW_DOWN) {
+    if (evt.keyCode === KEY_CODE.ARROW_DOWN) {
       upToDownDirection = true;
     }
-    if (isCurrentTagInput && isHotKey) {
-      evt.preventDefault();
-    }
   });
+
+  (function addStyle() {
+    const css = `.${ACTIVE_CLASS} { background: yellow; border: 1px solid red; }`,
+      head = document.head || document.getElementsByTagName('head')[0],
+      style = document.createElement('style');
+
+    head.appendChild(style);
+
+    style.type = 'text/css';
+    if (style.styleSheet){
+      // This is required for IE8 and below.
+      style.styleSheet.cssText = css;
+    } else {
+      style.appendChild(document.createTextNode(css));
+    }
+  })();
 })();
