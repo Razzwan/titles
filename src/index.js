@@ -17,29 +17,7 @@
     LANDMARK: `landmark`,
   };
 
-  const InputType  = {
-    BUTTON: `button`,
-    CHECKBOX: `checkbox`,
-    COLOR: `color`,
-    DATE: `date`,
-    EMAIL: `email`,
-    FILE: `file`,
-    HIDDEN: `hidden`,
-    IMAGE: `image`,
-    MONTH: `month`,
-    NUMBER: `number`,
-    PASSWORD: `password`,
-    RADIO: `radio`,
-    RANGE: `range`,
-    RESET: `reset`,
-    SEARCH: `search`,
-    SUBMIT: `submit`,
-    TEL: `tel`,
-    TEXT: `text`,
-    TIME: `time`,
-    URL: `url`,
-    WEEK: `week`,
-  };
+  const Input = `INPUT`;
 
   const KeyCode = {
     H: 72,
@@ -48,6 +26,8 @@
     ARROW_UP: 38,
     ARROW_DOWN: 40,
   };
+
+  const HOT_KEYS = [`ctrlKey`, `altKey`, `shiftKey `];
 
   let nodeContainer = [];
   let currentNodeIndex = null;
@@ -133,9 +113,22 @@
     }
   };
 
+  const checkHotKey = (evt) => {
+    return HOT_KEYS.find((key) => evt[key]);
+  };
+
+  const checkOnInput = () => {
+    if (typeof currentNodeIndex !== `number`) {
+      return false;
+    }
+    return nodeContainer[currentNodeIndex][0].tagName === Input;
+  };
+
   document.addEventListener(`keydown`, (evt) => {
 
     collectNodeList(document.body);
+    const isHotKey = checkHotKey(evt);
+    const isCurrentTagInput = checkOnInput();
 
     if (evt.keyCode === KeyCode.H) {
       toggleClassActive(NodeType.HEADER);
@@ -151,6 +144,9 @@
     }
     if (evt.keyCode === KeyCode.ARROW_DOWN) {
       upToDownDirection = true;
+    }
+    if (isCurrentTagInput && isHotKey) {
+      evt.preventDefault();
     }
   });
 })();
